@@ -73,7 +73,7 @@ func duration(samples []interface{}, n float64) string {
 	return fmt.Sprintf("%d days", int(n/24/60/60))
 }
 
-func Fprint(w io.Writer, snapshot func() map[string]metric.Metric) error {
+func Fprint(w io.Writer, snapshot func() map[string]metric.Metric) (err error) {
 	type h map[string]interface{}
 	metrics := []h{}
 	for name, metric := range snapshot() {
@@ -88,5 +88,11 @@ func Fprint(w io.Writer, snapshot func() map[string]metric.Metric) error {
 		n2 := metrics[j]["name"].(string)
 		return strings.Compare(n1, n2) < 0
 	})
-	return page.Execute(w, metrics)
+	for _, m := range metrics {
+		err = page.Execute(w, m)
+		if err != nil {
+			return
+		}
+	}
+	return
 }
